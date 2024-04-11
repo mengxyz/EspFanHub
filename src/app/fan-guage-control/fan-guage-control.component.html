@@ -1,0 +1,29 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title class="!flex !flex-row !gap-3 !items-center !justify-center"
+      ><mat-icon>speed</mat-icon> CH {{ ch }}</mat-card-title
+    >
+  </mat-card-header>
+  <mat-card-content class="!w-full">
+    <mat-slider class="!w-full">
+      <input
+        [max]="255"
+        [min]="0"
+        [step]="1"
+        [value]="sliderValue"
+        matSliderThumb
+        (dragEnd)="onChange($event.value)"
+        class="w-full"
+      />
+    </mat-slider>
+    <div class="text-xl">{{ rpm }} RPM</div>
+    <div class="text-xl">{{ ((current ?? 0) * 100).toFixed(0) }} Ma</div>
+    <!-- <p>This card has divider and indeterminate progress as footer</p>
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusantium rem pariatur, similique est culpa odit id ullam ipsum? Non quo sed impedit rem incidunt veritatis consequuntur quod aspernatur accusamus nam.\</p> -->
+    <mat-divider></mat-divider>
+  </mat-card-content>
+  <mat-card-actions>
+    <button mat-button>LIKE</button>
+    <button mat-button>SHARE</button>
+  </mat-card-actions>
+</mat-card>
