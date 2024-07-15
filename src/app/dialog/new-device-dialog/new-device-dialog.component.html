@@ -1,0 +1,26 @@
+<h1 mat-dialog-title>{{ title }}</h1>
+<div mat-dialog-content>
+  <mat-form-field class="w-full">
+    <mat-label>Device Name</mat-label>
+    <input matInput [(ngModel)]="deviceData.name" />
+  </mat-form-field>
+  <mat-form-field class="w-full">
+    <mat-label>IP Address</mat-label>
+    <input matInput [(ngModel)]="deviceData.ip" />
+  </mat-form-field>
+  <div class="flex flex-row gap-3">
+    <mat-form-field>
+      <mat-label>User</mat-label>
+      <input matInput [(ngModel)]="deviceData.userName" />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Password</mat-label>
+      <input type="password" matInput [(ngModel)]="deviceData.password" />
+    </mat-form-field>
+  </div>
+  <mat-checkbox [(ngModel)]="deviceData.autoConnect">Auto Connect</mat-checkbox>
+</div>
+<div mat-dialog-actions>
+  <button mat-button mat-dialog-close>No</button>
+  <button [disabled]="!valid()" mat-button (click)="submit()" cdkFocusInitial>Ok</button>
+</div>

@@ -1,0 +1,49 @@
+<h1 mat-dialog-title>Device Setting</h1>
+<div mat-dialog-content>
+  <mat-form-field class="w-full">
+    <mat-label>IP Address</mat-label>
+    <input matInput [(ngModel)]="deviceData.ip" />
+  </mat-form-field>
+  <div class="flex flex-row gap-3 w-full">
+    <mat-form-field class="w-full">
+      <mat-label>User</mat-label>
+      <input matInput [(ngModel)]="deviceData.userName" />
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Password</mat-label>
+      <input type="text" matInput [(ngModel)]="deviceData.password" />
+    </mat-form-field>
+  </div>
+  <mat-form-field class="w-full">
+    <mat-label>Board Sensor Addr</mat-label>
+    <mat-select [(ngModel)]="deviceData.boardSensorAddr">
+      @for (item of boardSensorAddrs; track item) {
+        <mat-option [value]="item">{{item}}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field class="w-full">
+    <mat-label>Five Volt Sensor Addr</mat-label>
+    <mat-select [(ngModel)]="deviceData.fiveVoltSensorAddr">
+      @for (item of fiveVoltSensorAddrs; track item) {
+        <mat-option [value]="item">{{item}}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field class="w-full">
+    <mat-label>Twelve Volt Sensor Addr</mat-label>
+    <mat-select [(ngModel)]="deviceData.twelveVoltSensorAddr">
+      @for (item of twelveVoltSensorAddrs; track item) {
+        <mat-option [value]="item">{{item}}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <div class="flex flex-col gap-1">
+    <mat-checkbox [(ngModel)]="deviceData.useMolexModule">Use Molex Module</mat-checkbox>
+    <mat-checkbox [(ngModel)]="deviceData.useOledModule">Use Oled Module</mat-checkbox>
+  </div>
+</div>
+<div mat-dialog-actions>
+  <button mat-button mat-dialog-close>No</button>
+  <button [disabled]="!valid()" mat-button (click)="submit()" cdkFocusInitial>Ok</button>
+</div>

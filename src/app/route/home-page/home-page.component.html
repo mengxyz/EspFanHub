@@ -1,0 +1,691 @@
+<div class="w-full flex flex-col items-center overflow-auto">
+  <div class="w-full max-w-4xl flex flex-col gap-3 items-end">
+    <mat-form-field class="w-full">
+      <mat-label>IP Address</mat-label>
+      <input
+        [(ngModel)]="device!.ip"
+        type="text"
+        matInput
+        placeholder="192.168.0.1"
+        [disabled]="isConnected"
+      />
+    </mat-form-field>
+
+    <div
+      *ngIf="isConnected && showCommand"
+      class="flex flex-row gap-3 w-full items-center"
+    >
+      <mat-form-field class="w-full">
+        <mat-label>Command</mat-label>
+        <input [(ngModel)]="command" type="text" matInput placeholder="T:V" />
+      </mat-form-field>
+
+      <button
+        (click)="send()"
+        class="w-fit"
+        type="button"
+        mat-raised-button
+        color="accent"
+      >
+        Send
+      </button>
+    </div>
+
+    <mat-form-field *ngIf="showLog" class="w-full">
+      <textarea class="min-h-[400px]" matInput>{{ message }}</textarea>
+    </mat-form-field>
+
+    <div class="flex flex-row gap-3">
+      <button
+        (click)="openSettingDialog()"
+        class="w-fit"
+        type="button"
+        mat-raised-button
+        color="primary"
+        [disabled]="!isConnected"
+      >
+        Setting
+      </button>
+      <mat-checkbox
+        class="example-margin"
+        [(ngModel)]="showCommand"
+        labelPosition="after"
+        color="primary"
+      >
+        Command
+      </mat-checkbox>
+      <mat-checkbox
+        class="example-margin"
+        [(ngModel)]="showLog"
+        labelPosition="after"
+        color="primary"
+      >
+        Log
+      </mat-checkbox>
+      <button
+        (click)="connect()"
+        class="w-fit"
+        type="button"
+        mat-raised-button
+        color="primary"
+        [disabled]="isConnected"
+      >
+        Connect
+      </button>
+
+      <button
+        (click)="disconnect()"
+        class="w-fit"
+        type="button"
+        mat-raised-button
+        color="warn"
+        [disabled]="!isConnected"
+      >
+        Disconnect
+      </button>
+      <button
+        (click)="openPort()"
+        [disabled]="port != undefined"
+        class="w-fit"
+        type="button"
+        mat-raised-button
+        color="warn"
+      >
+        Open
+      </button>
+
+      <button
+        (click)="closePort()"
+        class="w-fit"
+        type="button"
+        mat-raised-button
+        color="warn"
+        [disabled]="port == undefined"
+      >
+        Close
+      </button>
+    </div>
+
+    <div class="self-start text-xl">
+      <strong>Status:</strong>
+      <span
+        [class]="{
+          'text-red-600': status === 'Disconnected',
+          'text-green-600': status === 'Connected'
+        }"
+      >
+        {{ status }}</span
+      >
+    </div>
+
+    <div class="flex flex-row gap-4 justify-start w-full">
+      <mat-card class="w-full">
+        <mat-card-header>
+          <mat-card-subtitle>5V</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div
+            class="flex flex-col justify-between items-center gap-4 text-red-500 text-lg w-full font-bold"
+          >
+            <div class="text-2xl">
+              {{ data.voltage.fiveVolt.voltage.toFixed(2) }}V
+            </div>
+            <div class="grid grid-cols-2 w-full">
+              <div class="text-sm text-center">
+                {{ data.voltage.fiveVolt.current.toFixed(2) }}mA
+              </div>
+              <div class="text-sm text-center">
+                {{ data.voltage.fiveVolt.power.toFixed(2) }}mW
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="w-full">
+        <mat-card-header>
+          <mat-card-subtitle>12V</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div
+            class="flex flex-col justify-between items-center gap-4 text-yellow-500 text-lg w-full font-bold"
+          >
+            <div class="text-2xl">
+              {{ data.voltage.twelveVolt.voltage.toFixed(2) }}V
+            </div>
+            <div class="grid grid-cols-2 w-full">
+              <div class="text-sm text-center">
+                {{ data.voltage.twelveVolt.current.toFixed(2) }}mA
+              </div>
+              <div class="text-sm text-center">
+                {{ data.voltage.twelveVolt.power.toFixed(2) }}mW
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="flex flex-row gap-4 justify-start w-full">
+      <mat-card class="w-full">
+        <mat-card-header>
+          <mat-card-subtitle>SHT 40</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div
+            class="flex flex-col justify-between items-center gap-4 text-green-500 text-lg w-full font-bold"
+          >
+            <div class="grid grid-cols-2 w-full">
+              <div class="text-sm text-center">
+                {{ data.boardTemp?.temp?.toFixed(2) ?? "" }}C
+              </div>
+              <div class="text-sm text-center">
+                {{ data.boardTemp?.humi?.toFixed(2) ?? "" }}%
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="w-full">
+        <mat-card-header>
+          <mat-card-subtitle>Thermistor</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div
+            class="flex flex-col justify-between items-center gap-4 text-green-500 text-lg w-full font-bold"
+          >
+            <div class="grid grid-cols-2 w-full">
+              <div class="text-sm text-center">
+                {{ data.thermistor.ch0Temp?.toFixed(2) }}C <br />
+                {{ data.thermistor.ch0Adc?.toFixed(2) }}ADC <br />
+                {{ data.thermistor.ch0Voltage?.toFixed(2) }}V <br />
+                {{ ((data.thermistor.ch0Resistance ?? 0) / 1000).toFixed(2) }}K
+              </div>
+              <div class="text-sm text-center">
+                {{ data.thermistor.ch1Temp?.toFixed(2) }}C <br />
+                {{ data.thermistor.ch1Adc?.toFixed(2) }}ADC <br />
+                {{ data.thermistor.ch1Voltage?.toFixed(2) }}V <br />
+                {{ ((data.thermistor.ch1Resistance ?? 0) / 1000).toFixed(2) }}K
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="flex flex-row gap-4 justify-start w-full">
+      <div class="flex flex-col gap-4 text-red-700 text-lg w-full">
+        <div class="text-black">Duty</div>
+
+        <mat-card class="w-full">
+          <mat-card-header>
+            <mat-card-subtitle>CH 1</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div
+              class="flex flex-col justify-between items-center gap-4 text-green-500 text-lg w-full font-bold"
+            >
+              <div class="grid grid-cols-3 w-full">
+                <mat-slider
+                  discrete
+                  [displayWith]="formatLabel"
+                  class="col-span-2"
+                  min="0"
+                  max="255"
+                  step="1"
+                >
+                  <input
+                    (dragEnd)="setDuty($event, 0)"
+                    matSliderThumb
+                    [(ngModel)]="data.fanData.duties[0]"
+                  />
+                </mat-slider>
+
+                <div class="grid grid-cols-2">
+                  <div class="text-sm text-center">
+                    {{ ((data.fanData.duties[0] / 255) * 100).toFixed(0) }}%
+                  </div>
+                  <div class="text-sm text-center text-purple-500">
+                    {{ data.fanData.rpms[0].toFixed(0) }} RPM
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="w-full">
+          <mat-card-header>
+            <mat-card-subtitle>CH 2</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div
+              class="flex flex-col justify-between items-center gap-4 text-green-500 text-lg w-full font-bold"
+            >
+              <div class="grid grid-cols-3 w-full">
+                <mat-slider
+                  discrete
+                  [displayWith]="formatLabel"
+                  class="col-span-2"
+                  min="0"
+                  max="255"
+                  step="1"
+                >
+                  <input
+                    (dragEnd)="setDuty($event, 1)"
+                    matSliderThumb
+                    [(ngModel)]="data.fanData.duties[1]"
+                  />
+                </mat-slider>
+
+                <div class="grid grid-cols-2">
+                  <div class="text-sm text-center">
+                    {{ ((data.fanData.duties[1] / 255) * 100).toFixed(0) }}%
+                  </div>
+                  <div class="text-sm text-center text-purple-500">
+                    {{ data.fanData.rpms[1].toFixed(0) }} RPM
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="w-full">
+          <mat-card-header>
+            <mat-card-subtitle>CH 3</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div
+              class="flex flex-col justify-between items-center gap-4 text-green-500 text-lg w-full font-bold"
+            >
+              <div class="grid grid-cols-3 w-full">
+                <mat-slider
+                  discrete
+                  [displayWith]="formatLabel"
+                  class="col-span-2"
+                  min="0"
+                  max="255"
+                  step="1"
+                >
+                  <input
+                    (dragEnd)="setDuty($event, 2)"
+                    matSliderThumb
+                    [(ngModel)]="data.fanData.duties[2]"
+                  />
+                </mat-slider>
+
+                <div class="grid grid-cols-2">
+                  <div class="text-sm text-center">
+                    {{ ((data.fanData.duties[2] / 255) * 100).toFixed(0) }}%
+                  </div>
+                  <div class="text-sm text-center text-purple-500">
+                    {{ data.fanData.rpms[2].toFixed(0) }} RPM
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="w-full">
+          <mat-card-header>
+            <mat-card-subtitle>CH 4</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div
+              class="flex flex-col justify-between items-center gap-4 text-green-500 text-lg w-full font-bold"
+            >
+              <div class="grid grid-cols-3 w-full">
+                <mat-slider
+                  discrete
+                  [displayWith]="formatLabel"
+                  class="col-span-2"
+                  min="0"
+                  max="255"
+                  step="1"
+                >
+                  <input
+                    (dragEnd)="setDuty($event, 3)"
+                    matSliderThumb
+                    [(ngModel)]="data.fanData.duties[3]"
+                  />
+                </mat-slider>
+
+                <div class="grid grid-cols-2">
+                  <div class="text-sm text-center">
+                    {{ ((data.fanData.duties[3] / 255) * 100).toFixed(0) }}%
+                  </div>
+                  <div class="text-sm text-center text-purple-500">
+                    {{ data.fanData.rpms[3].toFixed(0) }} RPM
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="w-full">
+          <mat-card-header>
+            <mat-card-subtitle>CH 5</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div
+              class="flex flex-col justify-between items-center gap-4 text-green-500 text-lg w-full font-bold"
+            >
+              <div class="grid grid-cols-3 w-full">
+                <mat-slider
+                  discrete
+                  [displayWith]="formatLabel"
+                  class="col-span-2"
+                  min="0"
+                  max="255"
+                  step="1"
+                >
+                  <input
+                    (dragEnd)="setDuty($event, 4)"
+                    matSliderThumb
+                    [(ngModel)]="data.fanData.duties[4]"
+                  />
+                </mat-slider>
+
+                <div class="grid grid-cols-2">
+                  <div class="text-sm text-center">
+                    {{ ((data.fanData.duties[4] / 255) * 100).toFixed(0) }}%
+                  </div>
+                  <div class="text-sm text-center text-purple-500">
+                    {{ data.fanData.rpms[4].toFixed(0) }} RPM
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div class="flex flex-row gap-4 justify-start w-full">
+        <div class="flex flex-col gap-4 text-lg w-full">
+          <div class="text-black">Source</div>
+          <div class="grid grid-cols-2 gap-4">
+            <mat-card class="w-full">
+              <mat-card-header>
+                <mat-card-subtitle> Ch 1 </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content
+                class="!flex flex-row gap-3 justify-between mt-4"
+              >
+                <mat-icon
+                  [ngClass]="{
+                    'text-blue-500': !data.fanSource[0],
+                    'text-gray-300': data.fanSource[0]
+                  }"
+                  aria-hidden="false"
+                  aria-label="Developer Board Icon"
+                  fontIcon="developer_board"
+                ></mat-icon>
+                <mat-slide-toggle
+                  (change)="toggleFanSource(0)"
+                  [(ngModel)]="data.fanSource[0]"
+                >
+                </mat-slide-toggle>
+                <mat-icon
+                  [ngClass]="{
+                    'text-blue-500': data.fanSource[0],
+                    'text-gray-300': !data.fanSource[0]
+                  }"
+                  aria-hidden="false"
+                  aria-label="Dvr Icon"
+                  fontIcon="dvr"
+                ></mat-icon>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="w-full">
+              <mat-card-header>
+                <mat-card-subtitle> Ch 2 </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content
+                class="!flex flex-row gap-3 justify-between mt-4"
+              >
+                <mat-icon
+                  [ngClass]="{
+                    'text-blue-500': !data.fanSource[1],
+                    'text-gray-300': data.fanSource[1]
+                  }"
+                  aria-hidden="false"
+                  aria-label="Developer Board Icon"
+                  fontIcon="developer_board"
+                ></mat-icon>
+                <mat-slide-toggle
+                  (change)="toggleFanSource(1)"
+                  [(ngModel)]="data.fanSource[1]"
+                >
+                </mat-slide-toggle>
+                <mat-icon
+                  [ngClass]="{
+                    'text-blue-500': data.fanSource[1],
+                    'text-gray-300': !data.fanSource[1]
+                  }"
+                  aria-hidden="false"
+                  aria-label="Dvr Icon"
+                  fontIcon="dvr"
+                ></mat-icon>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="w-full">
+              <mat-card-header>
+                <mat-card-subtitle> Ch 3 </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content
+                class="!flex flex-row gap-3 justify-between mt-4"
+              >
+                <mat-icon
+                  [ngClass]="{
+                    'text-blue-500': !data.fanSource[2],
+                    'text-gray-300': data.fanSource[2]
+                  }"
+                  aria-hidden="false"
+                  aria-label="Developer Board Icon"
+                  fontIcon="developer_board"
+                ></mat-icon>
+                <mat-slide-toggle
+                  (change)="toggleFanSource(2)"
+                  [(ngModel)]="data.fanSource[2]"
+                >
+                </mat-slide-toggle>
+                <mat-icon
+                  [ngClass]="{
+                    'text-blue-500': data.fanSource[2],
+                    'text-gray-300': !data.fanSource[2]
+                  }"
+                  aria-hidden="false"
+                  aria-label="Dvr Icon"
+                  fontIcon="dvr"
+                ></mat-icon>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="w-full">
+              <mat-card-header>
+                <mat-card-subtitle> Ch 4 </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content
+                class="!flex flex-row gap-3 justify-between mt-4"
+              >
+                <mat-icon
+                  [ngClass]="{
+                    'text-blue-500': !data.fanSource[3],
+                    'text-gray-300': data.fanSource[3]
+                  }"
+                  aria-hidden="false"
+                  aria-label="Developer Board Icon"
+                  fontIcon="developer_board"
+                ></mat-icon>
+                <mat-slide-toggle
+                  (change)="toggleFanSource(3)"
+                  [(ngModel)]="data.fanSource[3]"
+                >
+                </mat-slide-toggle>
+                <mat-icon
+                  [ngClass]="{
+                    'text-blue-500': data.fanSource[3],
+                    'text-gray-300': !data.fanSource[3]
+                  }"
+                  aria-hidden="false"
+                  aria-label="Dvr Icon"
+                  fontIcon="dvr"
+                ></mat-icon>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="w-full">
+              <mat-card-header>
+                <mat-card-subtitle> Ch 5 </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content
+                class="!flex flex-row gap-3 justify-between mt-4"
+              >
+                <mat-icon
+                  [ngClass]="{
+                    'text-blue-500': !data.fanSource[4],
+                    'text-gray-300': data.fanSource[4]
+                  }"
+                  aria-hidden="false"
+                  aria-label="Developer Board Icon"
+                  fontIcon="developer_board"
+                ></mat-icon>
+                <mat-slide-toggle
+                  (change)="toggleFanSource(4)"
+                  [(ngModel)]="data.fanSource[4]"
+                >
+                </mat-slide-toggle>
+                <mat-icon
+                  [ngClass]="{
+                    'text-blue-500': data.fanSource[4],
+                    'text-gray-300': !data.fanSource[4]
+                  }"
+                  aria-hidden="false"
+                  aria-label="Dvr Icon"
+                  fontIcon="dvr"
+                ></mat-icon>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="w-full">
+              <mat-card-header>
+                <mat-card-subtitle> Argb </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <mat-card-content
+                  class="!flex flex-row gap-3 justify-between mt-4"
+                >
+                  <mat-icon
+                    [ngClass]="{
+                      'text-blue-500': !data.argbSource,
+                      'text-gray-300': data.argbSource
+                    }"
+                    aria-hidden="false"
+                    aria-label="Developer Board Icon"
+                    fontIcon="developer_board"
+                  ></mat-icon>
+                  <mat-slide-toggle
+                    (change)="toggleArgbSource()"
+                    [(ngModel)]="data.argbSource"
+                  >
+                  </mat-slide-toggle>
+                  <mat-icon
+                    [ngClass]="{
+                      'text-blue-500': data.argbSource,
+                      'text-gray-300': !data.argbSource
+                    }"
+                    aria-hidden="false"
+                    aria-label="Dvr Icon"
+                    fontIcon="dvr"
+                  ></mat-icon>
+                </mat-card-content>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="w-full col-span-2">
+              <mat-card-header>
+                <mat-card-subtitle> Argb </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content class="!flex flex-col !gap-4">
+                <mat-form-field class="w-full">
+                  <mat-label>ARGB Mode</mat-label>
+                  <mat-select [(ngModel)]="selectedArgbMode">
+                    <mat-option
+                      *ngFor="let item of argbMode | keyvalue"
+                      [value]="item.value"
+                      >{{ item.key }}</mat-option
+                    >
+                  </mat-select>
+                </mat-form-field>
+
+                <div class="w-full">
+                  Color {{ color }}
+                  <input type="color" [(ngModel)]="color" />
+                </div>
+
+                <div class="w-full">
+                  Speed
+                  <mat-slider
+                    class="w-full"
+                    min="2"
+                    max="100"
+                    step="1"
+                    showTickMarks
+                    discrete
+                    [displayWith]="formatLabel"
+                  >
+                    <input matSliderThumb #speed [(ngModel)]="argbSpeed" />
+                  </mat-slider>
+                </div>
+                <div class="w-full">
+                  Brightness
+                  <mat-slider
+                    class="w-full"
+                    min="0"
+                    max="100"
+                    step="1"
+                    showTickMarks
+                    discrete
+                    [displayWith]="formatLabel"
+                  >
+                    <input
+                      matSliderThumb
+                      #brightnessTag
+                      [(ngModel)]="brightness"
+                    />
+                  </mat-slider>
+                </div>
+              </mat-card-content>
+              <mat-card-actions>
+                <button
+                  (click)="loadArgb()"
+                  class="w-full"
+                  type="button"
+                  mat-raised-button
+                  color="secondary"
+                >
+                  Load
+                </button>
+                <button
+                  (click)="setArgbMode()"
+                  class="w-full"
+                  type="button"
+                  mat-raised-button
+                  color="primary"
+                >
+                  Apply
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
